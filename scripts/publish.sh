@@ -60,14 +60,14 @@ for platform in "${PLATFORMS[@]}"; do
   IFS=':' read -r pkg _ <<< "$platform"
   echo "  -> @haloydev/${pkg}"
   cd "${ROOT_DIR}/packages/${pkg}"
-  npm publish --access public
+  npm publish --access public --tag latest
   cd "${ROOT_DIR}"
 done
 
 # Publish main package
 echo "Publishing main package..."
 cd "${ROOT_DIR}/packages/haloy"
-npm publish --access public
+npm publish --access public --tag latest
 cd "${ROOT_DIR}"
 
 echo "Done! Published haloy@${VERSION} and all platform packages."

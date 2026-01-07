@@ -87,7 +87,7 @@ jobs:
           for pkg in cli-darwin-arm64 cli-darwin-x64 cli-linux-arm64 cli-linux-x64 cli-win32-arm64 cli-win32-x64; do
             echo "Publishing @haloydev/$pkg..."
             cd packages/$pkg
-            npm publish --access public
+            npm publish --access public --tag latest
             cd ../..
           done
         env:
@@ -96,6 +96,6 @@ jobs:
       - name: Publish main package
         run: |
           cd packages/haloy
-          npm publish --access public
+          npm publish --access public --tag latest
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
