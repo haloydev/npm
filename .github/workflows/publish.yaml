@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write  # Required for npm trusted publishing (OIDC)
     steps:
       - uses: actions/checkout@v4
 
@@ -23,11 +24,6 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Get version
         id: version
@@ -47,26 +43,26 @@ jobs:
           BASE_URL="https://github.com/haloydev/haloy/releases/download/v${VERSION}"
 
           # Darwin ARM64
-          curl -L "${BASE_URL}/haloy-darwin-arm64" -o packages/cli-darwin-arm64/bin/haloy
+          curl -fL "${BASE_URL}/haloy-darwin-arm64" -o packages/cli-darwin-arm64/bin/haloy
           chmod +x packages/cli-darwin-arm64/bin/haloy
 
           # Darwin x64
-          curl -L "${BASE_URL}/haloy-darwin-amd64" -o packages/cli-darwin-x64/bin/haloy
+          curl -fL "${BASE_URL}/haloy-darwin-amd64" -o packages/cli-darwin-x64/bin/haloy
           chmod +x packages/cli-darwin-x64/bin/haloy
 
           # Linux ARM64
-          curl -L "${BASE_URL}/haloy-linux-arm64" -o packages/cli-linux-arm64/bin/haloy
+          curl -fL "${BASE_URL}/haloy-linux-arm64" -o packages/cli-linux-arm64/bin/haloy
           chmod +x packages/cli-linux-arm64/bin/haloy
 
           # Linux x64
-          curl -L "${BASE_URL}/haloy-linux-amd64" -o packages/cli-linux-x64/bin/haloy
+          curl -fL "${BASE_URL}/haloy-linux-amd64" -o packages/cli-linux-x64/bin/haloy
           chmod +x packages/cli-linux-x64/bin/haloy
 
           # Windows ARM64
-          curl -L "${BASE_URL}/haloy-windows-arm64.exe" -o packages/cli-win32-arm64/bin/haloy.exe
+          curl -fL "${BASE_URL}/haloy-windows-arm64.exe" -o packages/cli-win32-arm64/bin/haloy.exe
 
           # Windows x64
-          curl -L "${BASE_URL}/haloy-windows-amd64.exe" -o packages/cli-win32-x64/bin/haloy.exe
+          curl -fL "${BASE_URL}/haloy-windows-amd64.exe" -o packages/cli-win32-x64/bin/haloy.exe
 
       - name: Update package versions
         run: |
@@ -87,15 +83,11 @@ jobs:
           for pkg in cli-darwin-arm64 cli-darwin-x64 cli-linux-arm64 cli-linux-x64 cli-win32-arm64 cli-win32-x64; do
             echo "Publishing @haloydev/$pkg..."
             cd packages/$pkg
-            npm publish --access public --tag latest
+            npm publish --access public --tag latest --provenance
             cd ../..
           done
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish main package
         run: |
           cd packages/haloy
-          npm publish --access public --tag latest
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          npm publish --access public --tag latest --provenance
