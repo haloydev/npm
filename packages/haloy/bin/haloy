@@ -1,0 +1,62 @@
+#!/usr/bin/env node
+
+const { spawn } = require("child_process");
+const path = require("path");
+const fs = require("fs");
+
+const PLATFORMS = {
+  "darwin-arm64": "@haloydev/cli-darwin-arm64",
+  "darwin-x64": "@haloydev/cli-darwin-x64",
+  "linux-arm64": "@haloydev/cli-linux-arm64",
+  "linux-x64": "@haloydev/cli-linux-x64",
+  "win32-arm64": "@haloydev/cli-win32-arm64",
+  "win32-x64": "@haloydev/cli-win32-x64",
+};
+
+function getBinaryPath() {
+  const platformKey = `${process.platform}-${process.arch}`;
+  const pkg = PLATFORMS[platformKey];
+
+  if (!pkg) {
+    console.error(`Error: Unsupported platform: ${platformKey}`);
+    console.error(`Supported platforms: ${Object.keys(PLATFORMS).join(", ")}`);
+    process.exit(1);
+  }
+
+  try {
+    // Try to resolve the binary from the platform-specific package
+    const pkgPath = require.resolve(`${pkg}/package.json`);
+    const pkgDir = path.dirname(pkgPath);
+    const binName = process.platform === "win32" ? "haloy.exe" : "haloy";
+    const binPath = path.join(pkgDir, "bin", binName);
+
+    if (!fs.existsSync(binPath)) {
+      throw new Error(`Binary not found at ${binPath}`);
+    }
+
+    return binPath;
+  } catch (e) {
+    console.error(`Error: Could not find haloy binary for ${platformKey}`);
+    console.error(`Package ${pkg} may not be installed.`);
+    console.error(`Try reinstalling: npm install haloy`);
+    process.exit(1);
+  }
+}
+
+const binPath = getBinaryPath();
+const args = process.argv.slice(2);
+
+// Use spawn with inherit to properly handle signals and stdio
+const child = spawn(binPath, args, {
+  stdio: "inherit",
+  windowsHide: true,
+});
+
+child.on("error", (err) => {
+  console.error(`Failed to execute haloy: ${err.message}`);
+  process.exit(1);
+});
+
+child.on("close", (code) => {
+  process.exit(code ?? 0);
+});

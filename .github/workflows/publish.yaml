@@ -1,0 +1,101 @@
+name: Publish to npm
+
+on:
+  repository_dispatch:
+    types: [release]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., v0.3.5)'
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            VERSION="${{ github.event.client_payload.version }}"
+          else
+            VERSION="${{ inputs.version }}"
+          fi
+          # Strip 'v' prefix if present
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Download binaries
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          BASE_URL="https://github.com/haloydev/haloy/releases/download/v${VERSION}"
+
+          # Darwin ARM64
+          curl -L "${BASE_URL}/haloy-darwin-arm64" -o packages/cli-darwin-arm64/bin/haloy
+          chmod +x packages/cli-darwin-arm64/bin/haloy
+
+          # Darwin x64
+          curl -L "${BASE_URL}/haloy-darwin-amd64" -o packages/cli-darwin-x64/bin/haloy
+          chmod +x packages/cli-darwin-x64/bin/haloy
+
+          # Linux ARM64
+          curl -L "${BASE_URL}/haloy-linux-arm64" -o packages/cli-linux-arm64/bin/haloy
+          chmod +x packages/cli-linux-arm64/bin/haloy
+
+          # Linux x64
+          curl -L "${BASE_URL}/haloy-linux-amd64" -o packages/cli-linux-x64/bin/haloy
+          chmod +x packages/cli-linux-x64/bin/haloy
+
+          # Windows ARM64
+          curl -L "${BASE_URL}/haloy-windows-arm64.exe" -o packages/cli-win32-arm64/bin/haloy.exe
+
+          # Windows x64
+          curl -L "${BASE_URL}/haloy-windows-amd64.exe" -o packages/cli-win32-x64/bin/haloy.exe
+
+      - name: Update package versions
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          # Update all package.json files
+          for pkg in packages/*/package.json; do
+            jq --arg v "$VERSION" '.version = $v' "$pkg" > tmp.json && mv tmp.json "$pkg"
+          done
+
+          # Update optionalDependencies in main package
+          jq --arg v "$VERSION" '
+            .optionalDependencies |= with_entries(.value = $v)
+          ' packages/haloy/package.json > tmp.json && mv tmp.json packages/haloy/package.json
+
+      - name: Publish platform packages
+        run: |
+          for pkg in cli-darwin-arm64 cli-darwin-x64 cli-linux-arm64 cli-linux-x64 cli-win32-arm64 cli-win32-x64; do
+            echo "Publishing @haloydev/$pkg..."
+            cd packages/$pkg
+            npm publish --access public
+            cd ../..
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish main package
+        run: |
+          cd packages/haloy
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

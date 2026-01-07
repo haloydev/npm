@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+*.tgz
+
+# Binaries (downloaded during CI/publish)
+packages/cli-*/bin/haloy
+packages/cli-*/bin/haloy.exe
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temp files
+tmp.json

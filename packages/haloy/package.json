@@ -1,0 +1,36 @@
+{
+  "name": "haloy",
+  "version": "0.0.0",
+  "description": "Simple deployment tool for Docker-based applications",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/haloydev/haloy.git"
+  },
+  "homepage": "https://haloy.dev",
+  "bin": {
+    "haloy": "bin/haloy"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "optionalDependencies": {
+    "@haloydev/cli-darwin-arm64": "0.0.0",
+    "@haloydev/cli-darwin-x64": "0.0.0",
+    "@haloydev/cli-linux-arm64": "0.0.0",
+    "@haloydev/cli-linux-x64": "0.0.0",
+    "@haloydev/cli-win32-arm64": "0.0.0",
+    "@haloydev/cli-win32-x64": "0.0.0"
+  },
+  "keywords": [
+    "deploy",
+    "docker",
+    "cli",
+    "devops",
+    "deployment"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@haloydev/cli-darwin-x64",
+  "version": "0.0.0",
+  "description": "Haloy CLI binary for macOS x64",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/haloydev/haloy.git"
+  },
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "files": [
+    "bin"
+  ],
+  "preferUnplugged": true
+}
