@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/haloydev/haloy.git"
+    "url": "git+https://github.com/haloydev/npm.git"
   },
   "homepage": "https://haloy.dev",
   "bin": {
